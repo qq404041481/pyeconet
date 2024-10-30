@@ -1,0 +1,41 @@
+name: "Publish Econet to D1"
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    -   cron: "50 20 * * *"
+    # 20:50 UTC time -> 1:50pm
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  publishToEconet:
+    runs-on: ubuntu-latest
+    name: check Econet
+    environment: env
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+          pip install aiohttp
+          pip install paho-mqtt python-etcd
+
+      - name: Run publish to Econet
+        run: python3 src/report_status.py
+        env:
+          GIT_D1_ACCOUNT: ${{ secrets.GIT_D1_ACCOUNT }}
+          GIT_D1_DATABASE: ${{ secrets.GIT_D1_DATABASE }}
+          GIT_D1_DATABASE_API_KEY: ${{ secrets.GIT_D1_DATABASE_API_KEY }}
+          GIT_ECONET_PASSWORD: ${{ secrets.GIT_ECONET_PASSWORD }}
+          GIT_ECONET_USERNAME: ${{ secrets.GIT_ECONET_USERNAME }}
