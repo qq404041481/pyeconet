@@ -1,0 +1,27 @@
+name: "Notion backup"
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    -   cron: "50 20 * * *"
+    # 20:50 UTC time -> 1:50pm
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: check
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Run backup
+        run: python3 src/report_status.py
