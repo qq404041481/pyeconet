@@ -5,8 +5,8 @@ on:
     branches:
       - master
   schedule:
-    -   cron: "50 20 * * *"
-    # 20:50 UTC time -> 1:50pm
+    -   cron: "50 19 * * *"
+    # 19:50 UTC time -> 12:50pm
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
