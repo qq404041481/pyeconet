@@ -30,6 +30,7 @@ jobs:
           pip install requests
           pip install aiohttp
           pip install paho-mqtt python-etcd
+          pip install certifi
 
       - name: Run publish to Econet
         run: python3 src/report_status.py
