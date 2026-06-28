@@ -188,7 +188,7 @@ class EcoNetApiInterface:
         _headers["ClearBlade-UserToken"] = self._user_token
         payload = {"location_only": False, "type": "com.econet.econetconsumerandroid", "version": "6.0.0-375-01b4870e"}
 
-        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _connector = TCPConnector(ssl=_SSL_CONTEXT)
         _session = ClientSession(connector=_connector)
         try:
             async with _session.post(
@@ -213,7 +213,7 @@ class EcoNetApiInterface:
         _headers = HEADERS.copy()
         _headers["ClearBlade-UserToken"] = self._user_token
 
-        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _connector = TCPConnector(ssl=_SSL_CONTEXT)
         _session = ClientSession(connector=_connector)
         try:
             async with _session.post(
@@ -237,7 +237,7 @@ class EcoNetApiInterface:
 
     async def _authenticate(self, payload: dict) -> None:
 
-        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _connector = TCPConnector(ssl=_SSL_CONTEXT)
         _session = ClientSession(connector=_connector)
         async with _session.post(
             f"{REST_URL}/user/auth", json=payload, headers=HEADERS
