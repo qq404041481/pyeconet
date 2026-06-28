@@ -4,6 +4,7 @@ import ssl
 import json
 from typing import Type, TypeVar, List, Dict, Optional
 import logging
+import certifi
 
 from pyeconet.errors import (
     PyeconetError,
@@ -34,9 +35,8 @@ _LOGGER = logging.getLogger(__name__)
 ApiType = TypeVar("ApiType", bound="EcoNetApiInterface")
 
 def _create_ssl_context() -> ssl.SSLContext:
-    """Create a SSL context for the MQTT connection."""
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-    context.load_default_certs()
+    """Create a TLS context using a known CA bundle."""
+    context = ssl.create_default_context(cafile=certifi.where())
     return context
 
 _SSL_CONTEXT = _create_ssl_context()
@@ -188,7 +188,8 @@ class EcoNetApiInterface:
         _headers["ClearBlade-UserToken"] = self._user_token
         payload = {"location_only": False, "type": "com.econet.econetconsumerandroid", "version": "6.0.0-375-01b4870e"}
 
-        _session = ClientSession()
+        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _session = ClientSession(connector=_connector)
         try:
             async with _session.post(
                 f"{REST_URL}/code/{CLEAR_BLADE_SYSTEM_KEY}/getUserDataForApp", json=payload, headers=_headers
@@ -212,7 +213,8 @@ class EcoNetApiInterface:
         _headers = HEADERS.copy()
         _headers["ClearBlade-UserToken"] = self._user_token
 
-        _session = ClientSession()
+        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _session = ClientSession(connector=_connector)
         try:
             async with _session.post(
                 f"{REST_URL}/code/{CLEAR_BLADE_SYSTEM_KEY}/dynamicAction",
@@ -235,7 +237,8 @@ class EcoNetApiInterface:
 
     async def _authenticate(self, payload: dict) -> None:
 
-        _session = ClientSession()
+        _connector = aiohttp.TCPConnector(ssl=_SSL_CONTEXT)
+        _session = ClientSession(connector=_connector)
         async with _session.post(
             f"{REST_URL}/user/auth", json=payload, headers=HEADERS
         ) as resp:
