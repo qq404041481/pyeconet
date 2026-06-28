@@ -37,6 +37,7 @@ ApiType = TypeVar("ApiType", bound="EcoNetApiInterface")
 def _create_ssl_context() -> ssl.SSLContext:
     """Create a TLS context using a known CA bundle."""
     context = ssl.create_default_context(cafile=certifi.where())
+    context.load_default_certs()
     return context
 
 _SSL_CONTEXT = _create_ssl_context()
@@ -236,23 +237,24 @@ class EcoNetApiInterface:
             await _session.close()
 
     async def _authenticate(self, payload: dict) -> None:
-
         _connector = TCPConnector(ssl=_SSL_CONTEXT)
         _session = ClientSession(connector=_connector)
-        async with _session.post(
-            f"{REST_URL}/user/auth", json=payload, headers=HEADERS
-        ) as resp:
-            if resp.status == 200:
-                _json = await resp.json()
-                _LOGGER.debug(_json)
-                if _json.get("options")["success"]:
-                    self._user_token = _json.get("user_token")
-                    self._account_id = _json.get("options").get("account_id")
+        try:
+            async with _session.post(
+                f"{REST_URL}/user/auth", json=payload, headers=HEADERS
+            ) as resp:
+                if resp.status == 200:
+                    _json = await resp.json()
+                    _LOGGER.debug(_json)
+                    if _json.get("options")["success"]:
+                        self._user_token = _json.get("user_token")
+                        self._account_id = _json.get("options").get("account_id")
+                    else:
+                        raise InvalidCredentialsError(_json.get("options")["message"])
                 else:
-                    raise InvalidCredentialsError(_json.get("options")["message"])
-            else:
-                raise GenericHTTPError(resp.status)
-        await _session.close()
+                    raise GenericHTTPError(resp.status)
+        finally:
+            await _session.close()
 
     def _on_connect(self, client, userdata, flags, rc):
         _LOGGER.debug(f"Connected with result code: {str(rc)}")
