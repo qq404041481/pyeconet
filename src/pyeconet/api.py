@@ -16,7 +16,7 @@ from pyeconet.equipment import Equipment, EquipmentType
 from pyeconet.equipment.water_heater import WaterHeater
 from pyeconet.equipment.thermostat import Thermostat
 
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
 from aiohttp.client_exceptions import ClientError
 import paho.mqtt.client as mqtt
 
