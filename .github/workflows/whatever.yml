@@ -5,10 +5,8 @@ on:
     branches:
       - master
   schedule:
-    -   cron: "50 19 * * *"
-    # 19:50 UTC time -> 12:50pm
+    - cron: "50 19 * * *" # 19:50 UTC -> 12:50pm PST
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -23,27 +21,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+          cache: 'pip' # Speeds up subsequent runs
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip certifi
-          pip install requests
-          pip install "aiohttp>=3.10"
-          pip install paho-mqtt python-etcd
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade certifi
+          python3 -m pip install requests "aiohttp>=3.10" paho-mqtt python-etcd
 
       - name: Debug Rheem TLS
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           import certifi
           import ssl
           import urllib.request
 
-          print("OpenSSL:", ssl.OPENSSL_VERSION)
-          print("certifi:", certifi.where())
+          print("OpenSSL Version:", ssl.OPENSSL_VERSION)
+          print("Certifi Path:", certifi.where())
+          
+          # Rely strictly on certifi's bundle, removed load_default_certs()
           context = ssl.create_default_context(cafile=certifi.where())
-          context.load_default_certs()
-          with urllib.request.urlopen("https://rheem.clearblade.com", context=context, timeout=20) as response:
-              print("rheem.clearblade.com:", response.status)
+          
+          try:
+              with urllib.request.urlopen("https://rheem.clearblade.com", context=context, timeout=20) as response:
+                  print("Success! rheem.clearblade.com returned status:", response.status)
+          except Exception as e:
+              print("TLS Verification Failed:", e)
+              raise e
           PY
 
       - name: Run publish to Econet
